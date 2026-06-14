@@ -6,8 +6,9 @@ Infrastructure as Code for a Hetzner Cloud VPS: Terraform creates the server and
 
 - [Terraform](https://developer.hashicorp.com/terraform) >= 1.65
 - [Ansible](https://docs.ansible.com/) >= 2.14
-- ***SSH key***: `ssh-keygen -t ed25519`
-- ***Hetzner API token***: Cloud Console → Security → API Tokens → Generate
+- [jq](https://jqlang.github.io/jq/) >= 1.7.1
+- **SSH key**: `ssh-keygen -t ed25519 -f ~/.ssh/deploy`
+- **Hetzner API token**: Cloud Console → Security → API Tokens → Generate
 
 ## Quick start
 
@@ -24,20 +25,13 @@ cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 make init
 ```
 
-Downloads the `hetznercloud/hcloud` provider.
-
 ### 3. Create the server
 
 ```bash
 make apply
 ```
 
-Creates the server, uploads your SSH public key, and attaches the firewall. Copy the output IP into `ansible/inventory/hosts.ini`:
-
-```bash
-cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini
-# Replace YOUR_SERVER_IP with the IP from terraform output
-```
+Provisions the server(s), uploads your SSH public key, attaches the firewall, and writes `ansible/inventory/hosts.ini` automatically.
 
 ### 4. Configure the server
 
@@ -45,25 +39,26 @@ cp ansible/inventory/hosts.ini.example ansible/inventory/hosts.ini
 make configure
 ```
 
-Runs the Ansible playbook as root. The playbook:
+Runs the Ansible playbook as root:
 
 1. **`deploy_user`** - creates a `deploy` system user, copies your SSH public key, grants passwordless sudo
-2. **`docker`** - installs Docker CE and the `docker compose` plugin from the official Docker apt repo
-3. **`ssh_config`** - drops `/etc/ssh/sshd_config.d/99-custom.conf` disabling root login and password auth, restarts sshd
-4. **`ufw`** - installs UFW, denies all inbound traffic except ports 22/80/443, enables the firewall
+2. **`docker`** - installs Docker CE and the `docker compose` plugin
+3. **`ssh_config`** - disables root login and password auth, restarts sshd
+4. **`ufw`** - denies all inbound traffic except ports 22/80/443
 
-### 5. SSH in as the deploy user
+### 5. SSH in
 
 ```bash
-make ssh
+make ssh                  # connects to the first server
+make ssh SERVER=web-02    # connects to a specific server
 ```
 
 ### Re-running Ansible
 
-After the first `make configure`, root login is disabled. Pass `USER=deploy` for subsequent runs:
+After the first `make configure`, root login is disabled. Pass `SSH_USER=deploy` for subsequent runs:
 
 ```bash
-make configure USER=deploy
+make configure SSH_USER=deploy
 ```
 
 ### Delete the server
@@ -72,22 +67,28 @@ make configure USER=deploy
 make destroy
 ```
 
-Destroys the server, firewall, and SSH key in Hetzner Cloud.
+Destroys all servers, shared firewall and SSH key in Hetzner Cloud.
 
 ## Configuration
 
-### Terraform variables (`terraform/terraform.tfvars`)
+### Terraform (`terraform/terraform.tfvars`)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `hcloud_token` | - | **Required.** Hetzner Cloud API token |
-| `server_name` | `web-01` | Server hostname and resource prefix |
-| `server_type` | `cx23` | Instance type (cx23 = 2 vCPU, 4 GB RAM) |
-| `server_image` | `debian-12` | OS image |
-| `location` | `nbg1` | Datacenter (`nbg1`, `fsn1`, `hel1`, `ash`) |
-| `ssh_public_key_path` | `~/.ssh/id_ed25519.pub` | Public key to upload to Hetzner |
+| `ssh_public_key_path` | `~/.ssh/deploy.pub` | Public key to upload to Hetzner |
+| `servers` | *see below* | Map of servers to create - name, type, location, image |
 
-### Ansible variables (`ansible/group_vars/all.yml`)
+`servers` example entries:
+
+```hcl
+servers = {
+  web-01 = { server_type = "cx23", location = "nbg1", image = "debian-12" }
+  web-02 = { server_type = "cx23", location = "fsn1", image = "debian-12" }
+}
+```
+
+### Ansible (`ansible/group_vars/all.yml`)
 
 | Variable | Default | Description |
 |----------|---------|-------------|

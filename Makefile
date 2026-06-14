@@ -27,10 +27,10 @@ apply:
 	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
 
 configure:
-	cd $(ANSIBLE_DIR) && ansible-playbook site.yml $(if $(USER),-u $(USER),)
+	cd $(ANSIBLE_DIR) && ansible-playbook site.yml $(if $(SSH_USER),-u $(SSH_USER),)
 
 destroy:
 	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve
 
 ssh:
-	ssh -i $(SSH_KEY) $(DEPLOY_USER)@$$(cd $(TERRAFORM_DIR) && terraform output -raw server_ip)
+	ssh -i $(SSH_KEY) $(DEPLOY_USER)@$$(cd $(TERRAFORM_DIR) && terraform output -json server_ips | jq -r '$(if $(SERVER),.["$(SERVER)"],.[keys[0]])')

@@ -1,10 +1,10 @@
 resource "hcloud_ssh_key" "deploy" {
-  name       = "${var.server_name}-key"
+  name       = "deploy-key"
   public_key = file(pathexpand(var.ssh_public_key_path))
 }
 
 resource "hcloud_firewall" "web" {
-  name = "${var.server_name}-fw"
+  name = "shared-fw"
 
   rule {
     direction  = "in"
@@ -29,14 +29,20 @@ resource "hcloud_firewall" "web" {
 }
 
 resource "hcloud_server" "web" {
-  name         = var.server_name
-  server_type  = var.server_type
-  image        = var.server_image
-  location     = var.location
+  for_each     = var.servers
+  name         = each.key
+  server_type  = each.value.server_type
+  image        = each.value.image
+  location     = each.value.location
   ssh_keys     = [hcloud_ssh_key.deploy.id]
   firewall_ids = [hcloud_firewall.web.id]
 
   labels = {
     managed_by = "terraform"
   }
+}
+
+resource "local_file" "ansible_inventory" {
+  content  = "[all]\n${join("\n", [for name, server in hcloud_server.web : "${name} ansible_host=${server.ipv4_address}"])}\n"
+  filename = "${path.module}/../ansible/inventory/hosts.ini"
 }

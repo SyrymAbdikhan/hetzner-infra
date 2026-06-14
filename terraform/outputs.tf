@@ -1,14 +1,4 @@
-output "server_ip" {
-  description = "Public IPv4 address of the server"
-  value       = hcloud_server.web.ipv4_address
-}
-
-output "server_name" {
-  description = "Name of the server"
-  value       = hcloud_server.web.name
-}
-
-output "server_id" {
-  description = "Hetzner Cloud server ID"
-  value       = hcloud_server.web.id
+output "server_ips" {
+  description = "Public IPv4 addresses of all servers"
+  value       = { for name, server in hcloud_server.web : name => server.ipv4_address }
 }

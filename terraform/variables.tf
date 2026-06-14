@@ -4,28 +4,20 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
-variable "server_name" {
-  description = "Name for the server"
-  type        = string
-  default     = "web-01"
-}
-
-variable "server_type" {
-  description = "Hetzner server type"
-  type        = string
-  default     = "cx23"
-}
-
-variable "server_image" {
-  description = "OS image to use"
-  type        = string
-  default     = "debian-12"
-}
-
-variable "location" {
-  description = "Hetzner datacenter location (nbg1, fsn1, hel1, ash)"
-  type        = string
-  default     = "nbg1"
+variable "servers" {
+  description = "Map of servers to create"
+  type = map(object({
+    server_type = string
+    location    = string
+    image       = string
+  }))
+  default = {
+    web-01 = {
+      server_type = "cx23"
+      location    = "nbg1"
+      image       = "debian-12"
+    }
+  }
 }
 
 variable "ssh_public_key_path" {

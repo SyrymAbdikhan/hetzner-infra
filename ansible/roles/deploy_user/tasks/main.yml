@@ -1,0 +1,27 @@
+---
+- name: Create deploy group
+  group:
+    name: "{{ deploy_user }}"
+    state: present
+
+- name: Create deploy user
+  user:
+    name: "{{ deploy_user }}"
+    group: "{{ deploy_user }}"
+    groups: sudo
+    shell: "{{ deploy_user_shell }}"
+    create_home: true
+    state: present
+
+- name: Add deploy user authorized SSH key
+  authorized_key:
+    user: "{{ deploy_user }}"
+    state: present
+    key: "{{ lookup('file', ssh_public_key_path) }}"
+
+- name: Grant deploy user passwordless sudo
+  copy:
+    dest: /etc/sudoers.d/{{ deploy_user }}
+    content: "{{ deploy_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+    validate: visudo -cf %s

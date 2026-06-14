@@ -1,0 +1,2 @@
+[all]
+web-01 ansible_host=YOUR_SERVER_IP

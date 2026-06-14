@@ -1,0 +1,18 @@
+---
+- name: Deploy SSH config
+  copy:
+    dest: /etc/ssh/sshd_config.d/99-custom.conf
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      PubkeyAuthentication yes
+      PermitEmptyPasswords no
+      ChallengeResponseAuthentication no
+      KbdInteractiveAuthentication no
+      X11Forwarding no
+      MaxAuthTries 3
+      LoginGraceTime 30
+    mode: "0600"
+    owner: root
+    group: root
+  notify: Restart sshd

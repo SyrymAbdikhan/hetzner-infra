@@ -1,0 +1,24 @@
+---
+- name: Configure Hetzner VPS
+  hosts: all
+  become: true
+
+  pre_tasks:
+    - name: Wait for SSH to become available
+      wait_for_connection:
+        timeout: 120
+        sleep: 5
+
+    - name: Gather facts
+      setup:
+
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  roles:
+    - deploy_user
+    - docker
+    - ssh_config
+    - ufw

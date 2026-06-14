@@ -33,4 +33,4 @@ destroy:
 	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve
 
 ssh:
-	ssh -i $(SSH_KEY) $(DEPLOY_USER)@$$(cd $(TERRAFORM_DIR) && terraform output -json server_ips | jq -r '$(if $(SERVER),.["$(SERVER)"],.[keys[0]])')
+	DEPLOY_USER=$(DEPLOY_USER) SSH_KEY=$(SSH_KEY) SERVER=$(SERVER) ./scripts/ssh.sh

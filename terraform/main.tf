@@ -36,13 +36,4 @@ resource "hcloud_server" "web" {
   location     = each.value.location
   ssh_keys     = [hcloud_ssh_key.deploy.id]
   firewall_ids = [hcloud_firewall.web.id]
-
-  labels = {
-    managed_by = "terraform"
-  }
-}
-
-resource "local_file" "ansible_inventory" {
-  content  = "[all]\n${join("\n", [for name, server in hcloud_server.web : "${name} ansible_host=${server.ipv4_address}"])}\n"
-  filename = "${path.module}/../ansible/inventory/hosts.ini"
 }

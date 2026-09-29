@@ -25,6 +25,9 @@ plan:
 
 apply:
 	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
+	cd $(TERRAFORM_DIR) && terraform output -json server_ips | \
+		jq -r '"[all]", (to_entries[] | "\(.key) ansible_host=\(.value)")' \
+		> ../$(ANSIBLE_DIR)/inventory/hosts.ini
 
 configure:
 	cd $(ANSIBLE_DIR) && ansible-playbook site.yml $(if $(SSH_USER),-u $(SSH_USER),)

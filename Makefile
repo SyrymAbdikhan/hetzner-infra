@@ -8,15 +8,13 @@ SSH_KEY       := ~/.ssh/deploy
 .PHONY: help init plan apply configure destroy ssh servers
 
 help:
-	@echo "Usage: make <target>"
-	@echo ""
-	@echo "  init       Initialize Terraform providers"
-	@echo "  plan       Show Terraform execution plan"
-	@echo "  apply      Provision infrastructure with Terraform"
-	@echo "  configure  Configure server with Ansible"
-	@echo "  destroy    Destroy all infrastructure"
-	@echo "  servers    List all servers and their IPs"
-	@echo "  ssh        Open SSH session as \"deploy\" user"
+	@echo "  init        download Terraform providers"
+	@echo "  plan        preview all changes"
+	@echo "  apply       create/update servers"
+	@echo "  configure   configure servers using Ansible"
+	@echo "  destroy     destroy all resources"
+	@echo "  servers     list all servers with IPs"
+	@echo "  ssh         SSH into a server [SERVER=name]"
 
 init:
 	cd $(TERRAFORM_DIR) && terraform init

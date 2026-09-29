@@ -14,7 +14,7 @@
     state: present
 
 - name: Add deploy user authorized SSH key
-  authorized_key:
+  ansible.builtin.authorized_key:
     user: "{{ deploy_user }}"
     state: present
     key: "{{ lookup('file', ssh_public_key_path) }}"

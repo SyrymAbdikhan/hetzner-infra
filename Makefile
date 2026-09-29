@@ -5,7 +5,7 @@ ANSIBLE_DIR   := ansible
 DEPLOY_USER   := deploy
 SSH_KEY       := ~/.ssh/deploy
 
-.PHONY: help init plan apply configure destroy ssh
+.PHONY: help init plan apply configure destroy ssh servers
 
 help:
 	@echo "Usage: make <target>"
@@ -15,6 +15,7 @@ help:
 	@echo "  apply      Provision infrastructure with Terraform"
 	@echo "  configure  Configure server with Ansible"
 	@echo "  destroy    Destroy all infrastructure"
+	@echo "  servers    List all servers and their IPs"
 	@echo "  ssh        Open SSH session as \"deploy\" user"
 
 init:
@@ -34,6 +35,9 @@ configure:
 
 destroy:
 	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve
+
+servers:
+	cd $(TERRAFORM_DIR) && terraform output -json server_ips | jq -r 'to_entries[] | "\(.key)\t\(.value)"'
 
 ssh:
 	DEPLOY_USER=$(DEPLOY_USER) SSH_KEY=$(SSH_KEY) SERVER=$(SERVER) ./scripts/ssh.sh
